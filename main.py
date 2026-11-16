@@ -7,6 +7,7 @@
 
 from datetime import datetime
 
+
 # ==========================================
 # DATA SISWA
 # ==========================================
@@ -87,6 +88,17 @@ def total_pembayaran():
     )
 
 
+def total_pengeluaran():
+    return sum(
+        transaksi["nominal"]
+        for transaksi in data_pengeluaran
+    )
+
+
+def hitung_saldo():
+    return total_pembayaran() - total_pengeluaran()
+
+
 # ==========================================
 # MENU UTAMA
 # ==========================================
@@ -115,18 +127,14 @@ def dashboard_saldo():
     print("         DASHBOARD SALDO")
     garis()
 
-    uang_masuk = total_pembayaran()
+    print("Total Uang Masuk :",
+          format_rupiah(total_pembayaran()))
 
-    uang_keluar = sum(
-        transaksi["nominal"]
-        for transaksi in data_pengeluaran
-    )
+    print("Total Pengeluaran:",
+          format_rupiah(total_pengeluaran()))
 
-    saldo = uang_masuk - uang_keluar
-
-    print("Total Uang Masuk :", format_rupiah(uang_masuk))
-    print("Total Pengeluaran:", format_rupiah(uang_keluar))
-    print("Saldo Kas        :", format_rupiah(saldo))
+    print("Saldo Kas        :",
+          format_rupiah(hitung_saldo()))
 
     garis()
 
@@ -167,7 +175,7 @@ def menu_siswa():
 
 
 # ==========================================
-# MENAMBAH SISWA
+# TAMBAH SISWA
 # ==========================================
 
 def tambah_siswa():
@@ -192,7 +200,7 @@ def tambah_siswa():
 
 
 # ==========================================
-# MELIHAT DATA SISWA
+# LIHAT SISWA
 # ==========================================
 
 def lihat_siswa():
@@ -215,7 +223,7 @@ def lihat_siswa():
 
 
 # ==========================================
-# MENGHAPUS SISWA
+# HAPUS SISWA
 # ==========================================
 
 def hapus_siswa():
@@ -284,7 +292,7 @@ def menu_pembayaran():
 
 def tambah_pembayaran():
     garis()
-    print("       TAMBAH PEMBAYARAN KAS")
+    print("TAMBAH PEMBAYARAN KAS")
     garis()
 
     if len(data_siswa) == 0:
@@ -307,40 +315,29 @@ def tambah_pembayaran():
             print("Nomor siswa tidak ditemukan!")
             return
 
-        print("\nNama siswa:", siswa_dipilih["nama"])
+        print("Nama siswa:", siswa_dipilih["nama"])
 
-        nominal = int(input("Masukkan nominal pembayaran: Rp"))
+        nominal = int(input("Nominal pembayaran: Rp"))
 
         if nominal <= 0:
             print("Nominal harus lebih dari 0!")
             return
 
-        tanggal = input("Masukkan tanggal (DD-MM-YYYY): ")
+        tanggal = input("Tanggal (DD-MM-YYYY): ")
 
-        try:
-            datetime.strptime(tanggal, "%d-%m-%Y")
-        except ValueError:
-            print("Format tanggal tidak valid!")
-            return
+        datetime.strptime(tanggal, "%d-%m-%Y")
 
-        transaksi = {
+        data_pembayaran.append({
             "nomor": len(data_pembayaran) + 1,
             "nama": siswa_dipilih["nama"],
             "nominal": nominal,
             "tanggal": tanggal
-        }
-
-        data_pembayaran.append(transaksi)
+        })
 
         print("\nPembayaran berhasil dicatat!")
-        garis()
-        print("Nama Siswa :", transaksi["nama"])
-        print("Nominal    :", format_rupiah(nominal))
-        print("Tanggal    :", tanggal)
-        garis()
 
     except ValueError:
-        print("Masukkan angka yang benar!")
+        print("Input angka atau tanggal tidak valid!")
 
 
 # ==========================================
@@ -349,7 +346,7 @@ def tambah_pembayaran():
 
 def riwayat_pembayaran():
     garis()
-    print("       RIWAYAT PEMBAYARAN")
+    print("RIWAYAT PEMBAYARAN")
     garis()
 
     if len(data_pembayaran) == 0:
@@ -363,32 +360,141 @@ def riwayat_pembayaran():
         print("Tanggal :", transaksi["tanggal"])
         garis()
 
-    print("Jumlah transaksi:", len(data_pembayaran))
-    print("Total pembayaran:", format_rupiah(total_pembayaran()))
+    print("Total:", format_rupiah(total_pembayaran()))
 
-
-# ==========================================
-# MENAMPILKAN TOTAL UANG MASUK
-# ==========================================
 
 def tampilkan_total():
     garis()
-    print("        TOTAL UANG KAS MASUK")
+    print("TOTAL UANG KAS MASUK")
     garis()
-
     print("Jumlah transaksi:", len(data_pembayaran))
-    print("Total uang masuk:", format_rupiah(total_pembayaran()))
-
+    print("Total pembayaran:", format_rupiah(total_pembayaran()))
     garis()
 
 
 # ==========================================
-# PENGELUARAN KAS
+# MENU PENGELUARAN KAS
 # ==========================================
 
 def menu_pengeluaran():
-    print("Fitur Pengeluaran Kas")
-    print("Belum tersedia pada Checkpoint 3.")
+    while True:
+        garis()
+        print("        PENGELUARAN KAS")
+        garis()
+        print("1. Tambah Pengeluaran")
+        print("2. Riwayat Pengeluaran")
+        print("3. Total Pengeluaran")
+        print("0. Kembali")
+        garis()
+
+        pilihan = input("Pilih menu: ")
+
+        if pilihan == "1":
+            tambah_pengeluaran()
+
+        elif pilihan == "2":
+            riwayat_pengeluaran()
+
+        elif pilihan == "3":
+            tampilkan_pengeluaran()
+
+        elif pilihan == "0":
+            break
+
+        else:
+            print("Pilihan tidak tersedia!")
+
+        input("\nTekan ENTER untuk lanjut...")
+
+
+# ==========================================
+# TAMBAH PENGELUARAN
+# ==========================================
+
+def tambah_pengeluaran():
+    garis()
+    print("TAMBAH PENGELUARAN KAS")
+    garis()
+
+    print("Saldo tersedia:", format_rupiah(hitung_saldo()))
+
+    keterangan = input(
+        "Keterangan pengeluaran: "
+    ).strip()
+
+    if keterangan == "":
+        print("Keterangan tidak boleh kosong!")
+        return
+
+    try:
+        nominal = int(input("Nominal pengeluaran: Rp"))
+
+        if nominal <= 0:
+            print("Nominal harus lebih dari 0!")
+            return
+
+        if nominal > hitung_saldo():
+            print("Saldo kas tidak mencukupi!")
+            return
+
+        tanggal = input("Tanggal (DD-MM-YYYY): ")
+
+        datetime.strptime(tanggal, "%d-%m-%Y")
+
+        data_pengeluaran.append({
+            "nomor": len(data_pengeluaran) + 1,
+            "keterangan": keterangan,
+            "nominal": nominal,
+            "tanggal": tanggal
+        })
+
+        print("\nPengeluaran berhasil dicatat!")
+        print("Keterangan:", keterangan)
+        print("Nominal:", format_rupiah(nominal))
+        print("Sisa saldo:", format_rupiah(hitung_saldo()))
+
+    except ValueError:
+        print("Input angka atau tanggal tidak valid!")
+
+
+# ==========================================
+# RIWAYAT PENGELUARAN
+# ==========================================
+
+def riwayat_pengeluaran():
+    garis()
+    print("RIWAYAT PENGELUARAN")
+    garis()
+
+    if len(data_pengeluaran) == 0:
+        print("Belum ada pengeluaran.")
+        return
+
+    for transaksi in data_pengeluaran:
+        print("Nomor      :", transaksi["nomor"])
+        print("Keterangan :", transaksi["keterangan"])
+        print("Nominal    :", format_rupiah(transaksi["nominal"]))
+        print("Tanggal    :", transaksi["tanggal"])
+        garis()
+
+    print("Total pengeluaran:",
+          format_rupiah(total_pengeluaran()))
+
+
+# ==========================================
+# TOTAL PENGELUARAN
+# ==========================================
+
+def tampilkan_pengeluaran():
+    garis()
+    print("TOTAL PENGELUARAN KAS")
+    garis()
+
+    print("Jumlah transaksi:", len(data_pengeluaran))
+    print("Total pengeluaran:",
+          format_rupiah(total_pengeluaran()))
+
+    garis()
 
 
 # ==========================================
@@ -400,7 +506,34 @@ def menu_riwayat():
     print("       RIWAYAT TRANSAKSI")
     garis()
 
-    riwayat_pembayaran()
+    if not data_pembayaran and not data_pengeluaran:
+        print("Belum ada transaksi.")
+        return
+
+    semua_transaksi = []
+
+    for transaksi in data_pembayaran:
+        semua_transaksi.append({
+            "jenis": "PEMASUKAN",
+            "keterangan": transaksi["nama"],
+            "nominal": transaksi["nominal"],
+            "tanggal": transaksi["tanggal"]
+        })
+
+    for transaksi in data_pengeluaran:
+        semua_transaksi.append({
+            "jenis": "PENGELUARAN",
+            "keterangan": transaksi["keterangan"],
+            "nominal": transaksi["nominal"],
+            "tanggal": transaksi["tanggal"]
+        })
+
+    for transaksi in semua_transaksi:
+        print("Jenis      :", transaksi["jenis"])
+        print("Keterangan :", transaksi["keterangan"])
+        print("Nominal    :", format_rupiah(transaksi["nominal"]))
+        print("Tanggal    :", transaksi["tanggal"])
+        garis()
 
 
 # ==========================================
@@ -412,18 +545,18 @@ def laporan_keuangan():
     print("        LAPORAN KEUANGAN")
     garis()
 
-    uang_masuk = total_pembayaran()
-
-    uang_keluar = sum(
-        transaksi["nominal"]
-        for transaksi in data_pengeluaran
-    )
-
     print("Jumlah Siswa     :", len(data_siswa))
-    print("Jumlah Transaksi :", len(data_pembayaran))
-    print("Total Uang Masuk :", format_rupiah(uang_masuk))
-    print("Total Pengeluaran:", format_rupiah(uang_keluar))
-    print("Saldo Kas        :", format_rupiah(uang_masuk - uang_keluar))
+    print("Jumlah Pembayaran:", len(data_pembayaran))
+    print("Jumlah Pengeluaran:", len(data_pengeluaran))
+
+    print("Uang Masuk       :",
+          format_rupiah(total_pembayaran()))
+
+    print("Uang Keluar      :",
+          format_rupiah(total_pengeluaran()))
+
+    print("Saldo Akhir      :",
+          format_rupiah(hitung_saldo()))
 
     garis()
 
@@ -457,7 +590,7 @@ while True:
         laporan_keuangan()
 
     elif pilihan == "0":
-        print("\nTerima kasih!")
+        print("Terima kasih!")
         print("Program Kas Digital selesai.")
         break
 
